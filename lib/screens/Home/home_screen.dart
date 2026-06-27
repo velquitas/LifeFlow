@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../widgets/progress_ring.dart';
 import '../../models/task.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/task_card.dart';
@@ -135,9 +135,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 10,
+                    Center(
+                      child: ProgressRing(
+                        progress: progress,
+                        size: 140,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
