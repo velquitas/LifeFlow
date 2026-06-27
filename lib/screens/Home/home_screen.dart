@@ -5,6 +5,9 @@ import '../../services/storage_service.dart';
 import '../../widgets/task_card.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/dashboard_card.dart';
+import '../planner/planner_screen.dart';
+import '../budget/budget_screen.dart';
+import '../profile/profile_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -198,6 +201,14 @@ Row(
       child: DashboardCard(
         title: "Planner",
         icon: Icons.calendar_month,
+        onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const PlannerScreen(),
+    ),
+  );
+},
         accentColor: Colors.green,
         child: const Text(
           "View\nSchedule",
@@ -216,6 +227,14 @@ Row(
       child: DashboardCard(
         title: "Budget",
         icon: Icons.account_balance_wallet,
+        onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const BudgetScreen(),
+    ),
+  );
+},
         accentColor: Colors.orange,
         child: const Text(
           "Track\nExpenses",
@@ -228,6 +247,14 @@ Row(
       child: DashboardCard(
         title: "Habits",
         icon: Icons.favorite,
+        onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const ProfileScreen(),
+    ),
+  );
+},
         accentColor: Colors.red,
         child: const Text(
           "Daily\nHabits",
