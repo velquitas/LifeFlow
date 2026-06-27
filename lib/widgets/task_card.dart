@@ -1,42 +1,78 @@
+
 import 'package:flutter/material.dart';
 
+import '../models/task.dart';
+
 class TaskCard extends StatelessWidget {
-  final String title;
-  final Color priorityColor;
-  final bool isCompleted;
-  final VoidCallback onTap;
+  final Task task;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   const TaskCard({
     super.key,
-    required this.title,
-    required this.priorityColor,
-    required this.isCompleted,
-    required this.onTap,
+    required this.task,
+    this.onTap,
+    this.onDelete,
   });
+
+  String get _priorityLabel {
+    switch (task.priority) {
+      case TaskPriority.low:
+        return 'Low';
+      case TaskPriority.medium:
+        return 'Medium';
+      case TaskPriority.high:
+        return 'High';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        leading: CircleAvatar(
-          radius: 8,
-          backgroundColor: priorityColor,
+        onTap: onTap,
+        leading: Checkbox(
+          value: task.completed,
+          onChanged: (_) => onTap?.call(),
         ),
         title: Text(
-          title,
+          task.title,
           style: TextStyle(
-            decoration:
-                isCompleted ? TextDecoration.lineThrough : null,
+            decoration: task.completed
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        trailing: Checkbox(
-          value: isCompleted,
-          onChanged: (_) => onTap(),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(task.category),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.flag, color: task.priorityColor, size: 16),
+                const SizedBox(width: 4),
+                Text(_priorityLabel),
+                if (task.dueDate != null) ...[
+                  const SizedBox(width: 12),
+                  const Icon(Icons.schedule, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${task.dueDate!.month}/${task.dueDate!.day}/${task.dueDate!.year}",
+                  ),
+                ],
+              ],
+            ),
+          ],
         ),
+        trailing: onDelete == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: onDelete,
+              ),
       ),
     );
   }

@@ -1,29 +1,53 @@
+
 import 'package:flutter/material.dart';
 
+enum TaskPriority { low, medium, high }
+
 class Task {
+  String id;
   String title;
-  Color priorityColor;
-  bool isCompleted;
+  String category;
+  DateTime? dueDate;
+  TaskPriority priority;
+  bool completed;
 
   Task({
+    required this.id,
     required this.title,
-    required this.priorityColor,
-    this.isCompleted = false,
+    this.category = "General",
+    this.dueDate,
+    this.priority = TaskPriority.medium,
+    this.completed = false,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'priorityColor': priorityColor.toARGB32(),
-      'isCompleted': isCompleted,
-    };
+  Color get priorityColor {
+    switch (priority) {
+      case TaskPriority.low:
+        return Colors.green;
+      case TaskPriority.medium:
+        return Colors.orange;
+      case TaskPriority.high:
+        return Colors.red;
+    }
   }
 
-  factory Task.fromJson(Map<String, dynamic> json) {
-    return Task(
-      title: json['title'],
-      priorityColor: Color(json['priorityColor']),
-      isCompleted: json['isCompleted'],
-    );
-  }
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "title": title,
+        "category": category,
+        "dueDate": dueDate?.toIso8601String(),
+        "priority": priority.index,
+        "completed": completed,
+      };
+
+  factory Task.fromJson(Map<String, dynamic> json) => Task(
+        id: json["id"],
+        title: json["title"],
+        category: json["category"] ?? "General",
+        dueDate: json["dueDate"] != null
+            ? DateTime.parse(json["dueDate"])
+            : null,
+        priority: TaskPriority.values[json["priority"] ?? 1],
+        completed: json["completed"] ?? false,
+      );
 }

@@ -1,13 +1,7 @@
+
 import 'package:flutter/material.dart';
-import '../../widgets/progress_ring.dart';
 import '../../models/task.dart';
-import '../../services/storage_service.dart';
-import '../../widgets/task_card.dart';
-import 'package:intl/intl.dart';
-import '../../widgets/dashboard_card.dart';
-import '../planner/planner_screen.dart';
-import '../budget/budget_screen.dart';
-import '../profile/profile_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,102 +10,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String get greeting {
-  final hour = DateTime.now().hour;
-
-  if (hour < 12) {
-    return "Good Morning";
-  }
-
-  if (hour < 17) {
-    return "Good Afternoon";
-  }
-
-  return "Good Evening";
-}
-
-String get formattedDate {
-  return DateFormat('EEEE, MMMM d').format(DateTime.now());
-}
-  final TextEditingController taskController = TextEditingController();
-
   final List<Task> tasks = [
-    Task(title: "Grocery Shopping", priorityColor: Colors.red),
-    Task(title: "Gym", priorityColor: Colors.orange),
-    Task(title: "Finish LifeFlow", priorityColor: Colors.green),
+    Task(id: '1', title: 'Grocery Shopping', priority: TaskPriority.high),
+    Task(id: '2', title: 'Gym', priority: TaskPriority.medium),
+    Task(id: '3', title: 'Finish LifeFlow', priority: TaskPriority.low),
   ];
 
-  int get completedTasks =>
-      tasks.where((t) => t.isCompleted).length;
-
   double get progress =>
-      tasks.isEmpty ? 0 : completedTasks / tasks.length;
+      tasks.isEmpty ? 0 : tasks.where((t) => t.completed).length / tasks.length;
 
-  @override
-  void initState() {
-    super.initState();
-    loadTasks();
-  }
-
-  Future<void> loadTasks() async {
-    final saved = await StorageService.loadTasks();
-
-    if (!mounted) return;
-
-    if (saved.isNotEmpty) {
-      setState(() {
-        tasks
-          ..clear()
-          ..addAll(saved);
-      });
-    }
-  }
-
-  Future<void> saveTasks() async {
-    await StorageService.saveTasks(tasks);
-  }
-
-  @override
-  void dispose() {
-    taskController.dispose();
-    super.dispose();
-  }
-
-  void _showAddTaskDialog() {
-    showDialog(
+  Future<void> _addTask() async {
+    final controller = TextEditingController();
+    await showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Add Task"),
-        content: TextField(
-          controller: taskController,
-          decoration:
-              const InputDecoration(hintText: "Enter a task"),
-        ),
+      builder: (d) => AlertDialog(
+        title: const Text('Add Task'),
+        content: TextField(controller: controller),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (taskController.text.trim().isEmpty) return;
-
+          TextButton(onPressed: ()=>Navigator.pop(d), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: (){
+              if(controller.text.trim().isEmpty) return;
               setState(() {
-                tasks.add(
-                  Task(
-                    title: taskController.text.trim(),
-                    priorityColor: Colors.blue,
-                  ),
-                );
+                tasks.add(Task(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  title: controller.text.trim(),
+                ));
               });
-
-              saveTasks();
-              taskController.clear();
-
-              Navigator.pop(context);
+              Navigator.pop(d);
             },
-            child: const Text("Add"),
-          ),
+            child: const Text('Add'),
+          )
         ],
       ),
     );
@@ -119,200 +48,44 @@ String get formattedDate {
 
   @override
   Widget build(BuildContext context) {
+    final completed = tasks.where((t)=>t.completed).length;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(greeting),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('LifeFlow')),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
+        onPressed: _addTask,
         child: const Icon(Icons.add),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            const Text(
-              "Good Morning 👋",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-              ),
+        children: [
+          const Text('Welcome Back',
+              style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
+          const SizedBox(height:20),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(children:[
+                const Text("Today's Progress"),
+                const SizedBox(height:12),
+                LinearProgressIndicator(value: progress),
+                const SizedBox(height:12),
+                Text('$completed of ${tasks.length} tasks complete'),
+              ]),
             ),
-            const SizedBox(height: 8),
-            Text(
-              formattedDate,
-              style: const TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height:20),
+          ...tasks.map((task)=>Card(
+            child: CheckboxListTile(
+              value: task.completed,
+              onChanged: (_){
+                setState(()=>task.completed=!task.completed);
+              },
+              title: Text(task.title),
+              subtitle: Text(task.category),
+              secondary: CircleAvatar(backgroundColor: task.priorityColor),
             ),
-            const SizedBox(height: 24),
-            Card(
-              color: const Color(0xFFE8F1E7),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Today's Progress",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: ProgressRing(
-                        progress: progress,
-                        size: 140,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "$completedTasks of ${tasks.length} Tasks Complete",
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const SizedBox(height: 30),
-
-const Text(
-  "Quick Actions",
-  style: TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-  ),
-),
-
-const SizedBox(height: 16),
-
-Row(
-  children: [
-    Expanded(
-      child: DashboardCard(
-        title: "Tasks",
-        icon: Icons.check_circle,
-        accentColor: Colors.blue,
-        child: const Text(
-          "Manage\nToday's Tasks",
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ),
-    const SizedBox(width: 16),
-    Expanded(
-      child: DashboardCard(
-        title: "Planner",
-        icon: Icons.calendar_month,
-        onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const PlannerScreen(),
-    ),
-  );
-},
-        accentColor: Colors.green,
-        child: const Text(
-          "View\nSchedule",
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ),
-  ],
-),
-
-const SizedBox(height: 16),
-
-Row(
-  children: [
-    Expanded(
-      child: DashboardCard(
-        title: "Budget",
-        icon: Icons.account_balance_wallet,
-        onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const BudgetScreen(),
-    ),
-  );
-},
-        accentColor: Colors.orange,
-        child: const Text(
-          "Track\nExpenses",
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ),
-    const SizedBox(width: 16),
-    Expanded(
-      child: DashboardCard(
-        title: "Habits",
-        icon: Icons.favorite,
-        onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const ProfileScreen(),
-    ),
-  );
-},
-        accentColor: Colors.red,
-        child: const Text(
-          "Daily\nHabits",
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ),
-  ],
-),
-
-const SizedBox(height: 30),
-            const Text(
-              "Today's Tasks",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...tasks.map((task) {
-              return Dismissible(
-                key: ValueKey(task.title),
-                background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                ),
-                onDismissed: (_) {
-                  setState(() {
-                    tasks.remove(task);
-                  });
-                  saveTasks();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("${task.title} deleted"),
-                    ),
-                  );
-                },
-                child: TaskCard(
-                  title: task.title,
-                  priorityColor: task.priorityColor,
-                  isCompleted: task.isCompleted,
-                  onTap: () {
-                    setState(() {
-                      task.isCompleted = !task.isCompleted;
-                    });
-                    saveTasks();
-                  },
-                ),
-              );
-            }),
-          ],
-        ),
+          ))
+        ],
       ),
     );
   }
