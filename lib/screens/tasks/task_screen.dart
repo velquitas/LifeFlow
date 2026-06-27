@@ -24,15 +24,32 @@ class _TaskScreenState extends State<TaskScreen> {
   String _filter = 'All';
 
   List<Task> get _filteredTasks {
-    if (_search.text.isEmpty) {
-      return _tasks;
-    }
+  List<Task> filtered = List.from(_tasks);
 
-    return _tasks.where((task) {
+  if (_filter == "Open") {
+    filtered = filtered.where((t) => !t.completed).toList();
+  }
+
+  if (_filter == "Completed") {
+    filtered = filtered.where((t) => t.completed).toList();
+  }
+
+  if (_search.text.isNotEmpty) {
+    filtered = filtered.where((task) {
       return task.title
-        .toLowerCase()
-        .contains(_search.text.toLowerCase());
+          .toLowerCase()
+          .contains(_search.text.toLowerCase());
     }).toList();
+  }
+
+  filtered.sort((a, b) {
+    if (a.completed == b.completed) {
+      return a.title.compareTo(b.title);
+    }
+    return a.completed ? 1 : -1;
+  });
+
+  return filtered;
 }
 
   int get totalTasks => _tasks.length;
