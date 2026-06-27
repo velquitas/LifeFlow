@@ -4,6 +4,7 @@ import '../../models/task.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/task_card.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/dashboard_card.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -167,6 +168,77 @@ String get formattedDate {
               ),
             ),
             const SizedBox(height: 24),
+            const SizedBox(height: 30),
+
+const Text(
+  "Quick Actions",
+  style: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+  ),
+),
+
+const SizedBox(height: 16),
+
+Row(
+  children: [
+    Expanded(
+      child: DashboardCard(
+        title: "Tasks",
+        icon: Icons.check_circle,
+        accentColor: Colors.blue,
+        child: const Text(
+          "Manage\nToday's Tasks",
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ),
+    const SizedBox(width: 16),
+    Expanded(
+      child: DashboardCard(
+        title: "Planner",
+        icon: Icons.calendar_month,
+        accentColor: Colors.green,
+        child: const Text(
+          "View\nSchedule",
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ),
+  ],
+),
+
+const SizedBox(height: 16),
+
+Row(
+  children: [
+    Expanded(
+      child: DashboardCard(
+        title: "Budget",
+        icon: Icons.account_balance_wallet,
+        accentColor: Colors.orange,
+        child: const Text(
+          "Track\nExpenses",
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ),
+    const SizedBox(width: 16),
+    Expanded(
+      child: DashboardCard(
+        title: "Habits",
+        icon: Icons.favorite,
+        accentColor: Colors.red,
+        child: const Text(
+          "Daily\nHabits",
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ),
+  ],
+),
+
+const SizedBox(height: 30),
             const Text(
               "Today's Tasks",
               style: TextStyle(

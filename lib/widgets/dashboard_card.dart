@@ -7,6 +7,8 @@ class DashboardCard extends StatelessWidget {
   final Color? accentColor;
   final EdgeInsetsGeometry padding;
 
+  final VoidCallback? onTap;
+
   const DashboardCard({
     super.key,
     required this.title,
@@ -14,18 +16,22 @@ class DashboardCard extends StatelessWidget {
     this.icon,
     this.accentColor,
     this.padding = const EdgeInsets.all(20),
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final color = accentColor ?? Theme.of(context).colorScheme.primary;
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+    return InkWell(
+     onTap: onTap,
+     borderRadius: BorderRadius.circular(20),
+     child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       child: Padding(
         padding: padding,
         child: Column(
@@ -53,6 +59,7 @@ class DashboardCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
