@@ -128,47 +128,62 @@ void initState() {
   },
 ),
 
+const SizedBox(height: 16),
+
+SegmentedButton<String>(
+  segments: const [
+    ButtonSegment(
+      value: 'All',
+      label: Text('All'),
+    ),
+    ButtonSegment(
+      value: 'Open',
+      label: Text('Open'),
+    ),
+    ButtonSegment(
+      value: 'Completed',
+      label: Text('Done'),
+    ),
+  ],
+  selected: {_filter},
+  onSelectionChanged: (selection) {
+    setState(() {
+      _filter = selection.first;
+    });
+  },
+),
+
 const SizedBox(height: 20),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'All', label: Text('All')),
-                ButtonSegment(value: 'Open', label: Text('Open')),
-                ButtonSegment(value: 'Completed', label: Text('Done')),
-              ],
-              selected: {_filter},
-              onSelectionChanged: (s) {
-                setState(() => _filter = s.first);
+              
+  
+Expanded(
+  child: tasks.isEmpty
+      ? const Center(child: Text('No tasks'))
+      : ListView.builder(
+          itemCount: _filteredTasks.length,
+          itemBuilder: (context, index) {
+            final task = _filteredTasks[index];
+            return TaskCard(
+              task: task,
+              onTap: () {
+                setState(() {
+                  task.completed = !task.completed;
+                });
+                _saveTasks();
               },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: tasks.isEmpty
-                  ? const Center(child: Text('No tasks'))
-                  : ListView.builder(
-                      itemCount: _filteredTasks.length,
-                      itemBuilder: (context, index) {
-                        final task = _filteredTasks[index];
-                        return TaskCard(
-                          task: task,
-                          onTap: () {
-                            setState(() {
-                              task.completed = !task.completed;
-                            });
-                            _saveTasks();
-                          },
-                          onDelete: () {
-                            setState(() {
-                              _tasks.remove(task);
-                            });
-                            _saveTasks();
-                          },
-                        );
-                      },
-                    ),
-            ),
-          ],
+              onDelete: () {
+                setState(() {
+                  _tasks.remove(task);
+                });
+                _saveTasks();
+              },
+            );
+          },
         ),
       ),
-    );
-  }
+    ],
+  ),
+),
+);
+}
 }
