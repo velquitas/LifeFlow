@@ -13,34 +13,47 @@ class TaskScreen extends StatefulWidget {
 }
 
 class _TaskScreenState extends State<TaskScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final TextEditingController _search = TextEditingController();
+  final TextEditingController _controller =
+      TextEditingController();
+
+  final TextEditingController _search =
+      TextEditingController();
 
   List<Task> _tasks = [];
+
   String _filter = 'All';
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  List<Task> get _filteredTasks {
+    if (_search.text.isEmpty) {
+      return _tasks;
+    }
 
-  Future<void> _load() async {
-    final tasks = await StorageService.loadTasks();
-    if (!mounted) return;
-    setState(() => _tasks = tasks);
-  }
-
-  Future<void> _save() => StorageService.saveTasks(_tasks);
-
-  List<Task> get _visible {
-    final q = _search.text.toLowerCase();
-    return _tasks.where((t) {
-      if (_filter == 'Open' && t.completed) return false;
-      if (_filter == 'Completed' && !t.completed) return false;
-      return t.title.toLowerCase().contains(q);
+    return _tasks.where((task) {
+      return task.title
+          .toLowerCase()
+          .contains(_search.text.toLowerCase());
     }).toList();
   }
+
+  @override
+void initState() {
+  super.initState();
+  _loadTasks();
+}
+
+  Future<void> _loadTasks() async {
+  final loaded = await StorageService.loadTasks();
+
+  if (!mounted) return;
+
+  setState(() {
+    _tasks = loaded;
+  });
+}
+
+  Future<void> _saveTasks() async {
+  await StorageService.saveTasks(_tasks);
+}
 
   Future<void> _addTask() async {
     _controller.clear();
@@ -70,7 +83,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                 );
               });
-              _save();
+              _saveTasks();
               Navigator.pop(d);
             },
             child: const Text('Add'),
@@ -89,7 +102,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tasks = _visible;
+    final tasks = _filteredTasks;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Tasks')),
@@ -103,13 +116,19 @@ class _TaskScreenState extends State<TaskScreen> {
           children: [
             TextField(
               controller: _search,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search tasks',
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
+              decoration: InputDecoration(
+                hintText: "Search tasks...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+    ),
+  ),
+  onChanged: (_) {
+    setState(() {});
+  },
+),
+
+const SizedBox(height: 20),
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'All', label: Text('All')),
@@ -126,22 +145,22 @@ class _TaskScreenState extends State<TaskScreen> {
               child: tasks.isEmpty
                   ? const Center(child: Text('No tasks'))
                   : ListView.builder(
-                      itemCount: tasks.length,
+                      itemCount: _filteredTasks.length,
                       itemBuilder: (context, index) {
-                        final task = tasks[index];
+                        final task = _filteredTasks[index];
                         return TaskCard(
                           task: task,
                           onTap: () {
                             setState(() {
                               task.completed = !task.completed;
                             });
-                            _save();
+                            _saveTasks();
                           },
                           onDelete: () {
                             setState(() {
                               _tasks.remove(task);
                             });
-                            _save();
+                            _saveTasks();
                           },
                         );
                       },

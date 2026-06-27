@@ -1,90 +1,88 @@
 
 import 'package:flutter/material.dart';
-import '../../models/task.dart';
 
-class HomeScreen extends StatefulWidget {
+import '../tasks/task_screen.dart';
+import '../planner/planner_screen.dart';
+import '../budget/budget_screen.dart';
+import '../profile/profile_screen.dart';
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final List<Task> tasks = [
-    Task(id: '1', title: 'Grocery Shopping', priority: TaskPriority.high),
-    Task(id: '2', title: 'Gym', priority: TaskPriority.medium),
-    Task(id: '3', title: 'Finish LifeFlow', priority: TaskPriority.low),
-  ];
-
-  double get progress =>
-      tasks.isEmpty ? 0 : tasks.where((t) => t.completed).length / tasks.length;
-
-  Future<void> _addTask() async {
-    final controller = TextEditingController();
-    await showDialog(
-      context: context,
-      builder: (d) => AlertDialog(
-        title: const Text('Add Task'),
-        content: TextField(controller: controller),
-        actions: [
-          TextButton(onPressed: ()=>Navigator.pop(d), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: (){
-              if(controller.text.trim().isEmpty) return;
-              setState(() {
-                tasks.add(Task(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  title: controller.text.trim(),
-                ));
-              });
-              Navigator.pop(d);
-            },
-            child: const Text('Add'),
-          )
-        ],
+  Widget _moduleCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Widget page,
+  }) {
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(child: Icon(icon)),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => page),
+          );
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final completed = tasks.where((t)=>t.completed).length;
     return Scaffold(
-      appBar: AppBar(title: const Text('LifeFlow')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTask,
-        child: const Icon(Icons.add),
+      appBar: AppBar(
+        title: const Text('LifeFlow'),
+        centerTitle: true,
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('Welcome Back',
-              style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-          const SizedBox(height:20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(children:[
-                const Text("Today's Progress"),
-                const SizedBox(height:12),
-                LinearProgressIndicator(value: progress),
-                const SizedBox(height:12),
-                Text('$completed of ${tasks.length} tasks complete'),
-              ]),
+          const Text(
+            'Dashboard',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height:20),
-          ...tasks.map((task)=>Card(
-            child: CheckboxListTile(
-              value: task.completed,
-              onChanged: (_){
-                setState(()=>task.completed=!task.completed);
-              },
-              title: Text(task.title),
-              subtitle: Text(task.category),
-              secondary: CircleAvatar(backgroundColor: task.priorityColor),
-            ),
-          ))
+          const SizedBox(height: 8),
+          const Text(
+            'Choose a module',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          _moduleCard(
+            context,
+            title: 'Tasks',
+            subtitle: 'Manage your to-do list',
+            icon: Icons.check_circle,
+            page: const TaskScreen(),
+          ),
+          _moduleCard(
+            context,
+            title: 'Planner',
+            subtitle: 'Calendar & events',
+            icon: Icons.calendar_month,
+            page: const PlannerScreen(),
+          ),
+          _moduleCard(
+            context,
+            title: 'Budget',
+            subtitle: 'Track income & expenses',
+            icon: Icons.account_balance_wallet,
+            page: const BudgetScreen(),
+          ),
+          _moduleCard(
+            context,
+            title: 'Profile',
+            subtitle: 'Settings & preferences',
+            icon: Icons.person,
+            page: const ProfileScreen(),
+          ),
         ],
       ),
     );
