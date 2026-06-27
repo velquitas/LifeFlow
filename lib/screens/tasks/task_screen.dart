@@ -30,10 +30,21 @@ class _TaskScreenState extends State<TaskScreen> {
 
     return _tasks.where((task) {
       return task.title
-          .toLowerCase()
-          .contains(_search.text.toLowerCase());
+        .toLowerCase()
+        .contains(_search.text.toLowerCase());
     }).toList();
-  }
+}
+
+  int get totalTasks => _tasks.length;
+
+  int get completedTasks =>
+      _tasks.where((t) => t.completed).length;
+
+  int get openTasks =>
+      totalTasks - completedTasks;
+
+  double get completionRate =>
+    totalTasks == 0 ? 0 : completedTasks / totalTasks;
 
   @override
 void initState() {
@@ -151,6 +162,85 @@ SegmentedButton<String>(
       _filter = selection.first;
     });
   },
+),
+
+const SizedBox(height: 20),
+const SizedBox(height: 20),
+
+Row(
+  children: [
+    Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                "$totalTasks",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text("Total"),
+            ],
+          ),
+        ),
+      ),
+    ),
+
+    const SizedBox(width: 12),
+
+    Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                "$completedTasks",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text("Done"),
+            ],
+          ),
+        ),
+      ),
+    ),
+
+    const SizedBox(width: 12),
+
+    Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                "$openTasks",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text("Open"),
+            ],
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
+const SizedBox(height: 16),
+
+LinearProgressIndicator(
+  value: completionRate,
+  minHeight: 8,
+  borderRadius: BorderRadius.circular(8),
 ),
 
 const SizedBox(height: 20),
