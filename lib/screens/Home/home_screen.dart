@@ -3,7 +3,7 @@ import '../../widgets/progress_ring.dart';
 import '../../models/task.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/task_card.dart';
-
+import 'package:intl/intl.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -12,6 +12,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String get greeting {
+  final hour = DateTime.now().hour;
+
+  if (hour < 12) {
+    return "Good Morning";
+  }
+
+  if (hour < 17) {
+    return "Good Afternoon";
+  }
+
+  return "Good Evening";
+}
+
+String get formattedDate {
+  return DateFormat('EEEE, MMMM d').format(DateTime.now());
+}
   final TextEditingController taskController = TextEditingController();
 
   final List<Task> tasks = [
@@ -100,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("LifeFlow"),
+        title: Text(greeting),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
@@ -120,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              DateTime.now().toString().substring(0, 10),
+              formattedDate,
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 24),
