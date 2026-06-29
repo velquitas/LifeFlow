@@ -404,6 +404,13 @@ Expanded(
                 });
                 _saveTasks();
               },
+              onEdit: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Editing ${task.title} coming soon"),
+                  ),
+                );
+              },
               onDelete: () {
                 setState(() {
                   _tasks.remove(task);
