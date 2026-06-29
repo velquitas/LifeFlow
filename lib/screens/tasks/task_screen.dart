@@ -87,7 +87,7 @@ void initState() {
   await StorageService.saveTasks(_tasks);
 }
 
-  Future<void> _addTask() async {
+  Future<void> _showTaskDialog({Task? editingTask}) async {
     _controller.clear();
 
     _selectedCategory = "General";
@@ -262,7 +262,7 @@ void initState() {
     return Scaffold(
       appBar: AppBar(title: const Text('Tasks')),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addTask,
+        onPressed: () => _showTaskDialog(),
         child: const Icon(Icons.add),
       ),
       body: Padding(
