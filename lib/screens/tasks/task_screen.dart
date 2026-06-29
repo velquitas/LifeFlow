@@ -23,36 +23,40 @@ class _TaskScreenState extends State<TaskScreen> {
 
   String _filter = 'All';
 
+  TaskPriority _selectedPriority = TaskPriority.medium;
+  String _selectedCategory = "General";
+  DateTime? _selectedDueDate;
+
   List<Task> get _filteredTasks {
-  List<Task> filtered = List.from(_tasks);
+    List<Task> filtered = List.from(_tasks);
 
-  if (_filter == "Open") {
-    filtered = filtered.where((t) => !t.completed).toList();
-  }
+    if (_filter == "Open") {
+      filtered = filtered.where((t) => !t.completed).toList();
+    }
 
-  if (_filter == "Completed") {
-    filtered = filtered.where((t) => t.completed).toList();
-  }
+    if (_filter == "Completed") {
+      filtered = filtered.where((t) => t.completed).toList();
+    }
 
-  if (_search.text.isNotEmpty) {
-    filtered = filtered.where((task) {
-      return task.title
+    if (_search.text.isNotEmpty) {
+      filtered = filtered.where((task) {
+        return task.title
           .toLowerCase()
           .contains(_search.text.toLowerCase());
-    }).toList();
-  }
-
-  filtered.sort((a, b) {
-    if (a.completed == b.completed) {
-      return a.title.compareTo(b.title);
+      }).toList();
     }
-    return a.completed ? 1 : -1;
+
+    filtered.sort((a, b) {
+      if (a.completed == b.completed) {
+        return a.title.compareTo(b.title);
+      }
+      return a.completed ? 1 : -1;
   });
 
   return filtered;
 }
 
-  int get totalTasks => _tasks.length;
+int get totalTasks => _tasks.length;
 
   int get completedTasks =>
       _tasks.where((t) => t.completed).length;
@@ -85,39 +89,162 @@ void initState() {
 
   Future<void> _addTask() async {
     _controller.clear();
+
+    _selectedCategory = "General";
+    _selectedPriority = TaskPriority.medium;
+    _selectedDueDate = null;
+
     await showDialog(
       context: context,
-      builder: (d) => AlertDialog(
-        title: const Text('New Task'),
-        content: TextField(
-          controller: _controller,
-          decoration: const InputDecoration(
-            hintText: 'Task title',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (_controller.text.trim().isEmpty) return;
-              setState(() {
-                _tasks.add(
-                  Task(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    title: _controller.text.trim(),
-                  ),
-                );
-              });
-              _saveTasks();
-              Navigator.pop(d);
-            },
-            child: const Text('Add'),
-          )
-        ],
-      ),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("New Task"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        labelText: "Task Title",
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: "Category",
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: "General",
+                          child: Text("General"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Work",
+                          child: Text("Work"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Home",
+                          child: Text("Home"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Health",
+                          child: Text("Health"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Finance",
+                          child: Text("Finance"),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+
+                        setDialogState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<TaskPriority>(
+                      value: _selectedPriority,
+                      decoration: const InputDecoration(
+                        labelText: "Priority",
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: TaskPriority.low,
+                          child: Text("Low"),
+                        ),
+                        DropdownMenuItem(
+                          value: TaskPriority.medium,
+                          child: Text("Medium"),
+                        ),
+                        DropdownMenuItem(
+                          value: TaskPriority.high,
+                          child: Text("High"),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+
+                        setDialogState(() {
+                          _selectedPriority = value;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.calendar_today),
+                      label: Text(
+                        _selectedDueDate == null
+                          ? "Select Due Date"
+                          : "${_selectedDueDate!.month}/${_selectedDueDate!.day}/${_selectedDueDate!.year}",
+                      ),
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate:
+                            _selectedDueDate ?? DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2100),
+                        );
+
+                        if (picked != null) {
+                          setDialogState(() {
+                            _selectedDueDate = picked;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text("Cancel"),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    if (_controller.text.trim().isEmpty) return;
+
+                    setState(() {
+                      _tasks.add(
+                        Task(
+                          id: DateTime.now()
+                            .millisecondsSinceEpoch
+                            .toString(),
+                          title: _controller.text.trim(),
+                          category: _selectedCategory,
+                          priority: _selectedPriority,
+                          dueDate: _selectedDueDate,
+                        ),
+                      );
+                    });
+
+                    await _saveTasks();
+
+                    if (!mounted) return;
+
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text("Add"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -181,7 +308,6 @@ SegmentedButton<String>(
   },
 ),
 
-const SizedBox(height: 20),
 const SizedBox(height: 20),
 
 Row(
@@ -267,9 +393,9 @@ Expanded(
   child: tasks.isEmpty
       ? const Center(child: Text('No tasks'))
       : ListView.builder(
-          itemCount: _filteredTasks.length,
+          itemCount: tasks.length,
           itemBuilder: (context, index) {
-            final task = _filteredTasks[index];
+            final task = tasks[index];
             return TaskCard(
               task: task,
               onTap: () {

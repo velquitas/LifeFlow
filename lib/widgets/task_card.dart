@@ -31,10 +31,11 @@ class TaskCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        onTap: onTap,
-        leading: Checkbox(
-          value: task.completed,
-          onChanged: (_) => onTap?.call(),
+              onTap: onTap,
+              onLongPress: () {},
+              leading: Checkbox(
+                value: task.completed,
+                onChanged: (_) => onTap?.call(),
         ),
         title: Text(
           task.title,
