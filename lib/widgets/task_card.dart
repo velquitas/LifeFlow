@@ -6,12 +6,14 @@ import '../models/task.dart';
 class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const TaskCard({
     super.key,
     required this.task,
     this.onTap,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -32,7 +34,7 @@ class TaskCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
               onTap: onTap,
-              onLongPress: () {},
+              onLongPress: onEdit,
               leading: Checkbox(
                 value: task.completed,
                 onChanged: (_) => onTap?.call(),
