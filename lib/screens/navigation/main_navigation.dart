@@ -6,17 +6,17 @@ import '../planner/planner_screen.dart';
 import '../budget/budget_screen.dart';
 import '../profile/profile_screen.dart';
 
-class NavigationScreen extends StatefulWidget {
-  const NavigationScreen({super.key});
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
 
   @override
-  State<NavigationScreen> createState() => _NavigationScreenState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _NavigationScreenState extends State<NavigationScreen> {
-  int currentIndex = 0;
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
 
-  final List<Widget> screens = const [
+  final List<Widget> _pages = const [
     HomeScreen(),
     TaskScreen(),
     PlannerScreen(),
@@ -28,14 +28,14 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: currentIndex,
-        children: screens,
+        index: _currentIndex,
+        children: _pages,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
+        selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {
-            currentIndex = index;
+            _currentIndex = index;
           });
         },
         destinations: const [

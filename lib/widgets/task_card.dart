@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
+import '../models/task_category.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -20,11 +20,11 @@ class TaskCard extends StatelessWidget {
   String get _priorityLabel {
     switch (task.priority) {
       case TaskPriority.low:
-        return 'Low';
+        return "Low";
       case TaskPriority.medium:
-        return 'Medium';
+        return "Medium";
       case TaskPriority.high:
-        return 'High';
+        return "High";
     }
   }
 
@@ -33,11 +33,11 @@ class TaskCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-              onTap: onTap,
-              onLongPress: onEdit,
-              leading: Checkbox(
-                value: task.completed,
-                onChanged: (_) => onTap?.call(),
+        onTap: onTap,
+        onLongPress: onEdit,
+        leading: Checkbox(
+          value: task.completed,
+          onChanged: (_) => onTap?.call(),
         ),
         title: Text(
           task.title,
@@ -51,23 +51,55 @@ class TaskCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(task.category),
-            const SizedBox(height: 4),
-            Row(
+            const SizedBox(height: 8),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Icon(Icons.flag, color: task.priorityColor, size: 16),
-                const SizedBox(width: 4),
-                Text(_priorityLabel),
-                if (task.dueDate != null) ...[
-                  const SizedBox(width: 12),
-                  const Icon(Icons.schedule, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${task.dueDate!.month}/${task.dueDate!.day}/${task.dueDate!.year}",
+                Chip(
+                  avatar: Icon(
+                    task.category.icon,
+                    size: 18,
+                    color: task.category.color,
                   ),
-                ],
+                  label: Text(task.category.displayName),
+                  backgroundColor:
+                      task.category.color.withValues(alpha: 0.12),
+                ),
+
+                Chip(
+                  avatar: Icon(
+                    Icons.flag,
+                    size: 18,
+                    color: task.priorityColor,
+                  ),
+                  label: Text(_priorityLabel),
+                  backgroundColor:
+                      task.priorityColor.withValues(alpha: 0.12),
+                ),
               ],
             ),
+
+            if (task.dueDate != null) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "${task.dueDate!.month}/${task.dueDate!.day}/${task.dueDate!.year}",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
         trailing: onDelete == null

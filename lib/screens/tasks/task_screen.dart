@@ -1,9 +1,16 @@
 
 import 'package:flutter/material.dart';
-
+import '../../models/task_category.dart';
 import '../../models/task.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/task_card.dart';
+import '../../widgets/category_chip.dart';
+import '../../widgets/priority_chip.dart';
+import 'task_header.dart';
+import 'task_list.dart';
+import 'task_filter_bar.dart';
+import 'task_dialog.dart';
+import '../../services/recurring_task_service.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -24,7 +31,7 @@ class _TaskScreenState extends State<TaskScreen> {
   String _filter = 'All';
 
   TaskPriority _selectedPriority = TaskPriority.medium;
-  String _selectedCategory = "General";
+  TaskCategory _selectedCategory = TaskCategory.personal;
   DateTime? _selectedDueDate;
 
   List<Task> get _filteredTasks {
@@ -90,7 +97,7 @@ void initState() {
   Future<void> _showTaskDialog({Task? editingTask}) async {
     _controller.clear();
 
-    _selectedCategory = "General";
+   _selectedCategory = TaskCategory.personal;
     _selectedPriority = TaskPriority.medium;
     _selectedDueDate = null;
 
@@ -115,71 +122,184 @@ void initState() {
 
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<String>(
-                      value: _selectedCategory,
-                      decoration: const InputDecoration(
-                        labelText: "Category",
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Category",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: "General",
-                          child: Text("General"),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        CategoryChip(
+                          category: TaskCategory.personal,
+                          selected: _selectedCategory == TaskCategory.personal,
+                          onTap: () {
+                            setDialogState(() {
+                              _selectedCategory = TaskCategory.personal;
+                            });
+                          },
                         ),
-                        DropdownMenuItem(
-                          value: "Work",
-                          child: Text("Work"),
-                        ),
-                        DropdownMenuItem(
-                          value: "Home",
-                          child: Text("Home"),
-                        ),
-                        DropdownMenuItem(
-                          value: "Health",
-                          child: Text("Health"),
-                        ),
-                        DropdownMenuItem(
-                          value: "Finance",
-                          child: Text("Finance"),
+
+                        const SizedBox(width: 12),
+
+                        CategoryChip(
+                          category: TaskCategory.work,
+                          selected: _selectedCategory == TaskCategory.work,
+                          onTap: () {
+                            setDialogState(() {
+                              _selectedCategory = TaskCategory.work;
+                            });
+                          },
                         ),
                       ],
-                      onChanged: (value) {
-                        if (value == null) return;
+                    ),
 
-                        setDialogState(() {
-                          _selectedCategory = value;
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        CategoryChip(
+                          category: TaskCategory.home,
+                          selected: _selectedCategory == TaskCategory.home,
+                          onTap: () {
+                          setDialogState(() {
+                            _selectedCategory = TaskCategory.home;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      CategoryChip(
+                        category: TaskCategory.health,
+                        selected: _selectedCategory == TaskCategory.health,
+                        onTap: () {
+                          setDialogState(() {
+                            _selectedCategory = TaskCategory.health;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          CategoryChip(
+                            category: TaskCategory.shopping,
+                            selected: _selectedCategory == TaskCategory.shopping,
+                            onTap: () {
+                              setDialogState(() {
+                                _selectedCategory = TaskCategory.shopping;
+                              });
+                            },
+                          ),
+
+                      const SizedBox(width: 12),
+
+                      CategoryChip(
+                        category: TaskCategory.finances,
+                        selected: _selectedCategory == TaskCategory.finances,
+                        onTap: () {
+                          setDialogState(() {
+                          _selectedCategory = TaskCategory.finances;
                         });
                       },
                     ),
+                  ],
+                ),
+
+const SizedBox(height: 12),
+
+Row(
+  children: [
+    CategoryChip(
+      category: TaskCategory.family,
+      selected: _selectedCategory == TaskCategory.family,
+      onTap: () {
+        setDialogState(() {
+          _selectedCategory = TaskCategory.family;
+        });
+      },
+    ),
+
+    const SizedBox(width: 12),
+
+    CategoryChip(
+      category: TaskCategory.school,
+      selected: _selectedCategory == TaskCategory.school,
+      onTap: () {
+        setDialogState(() {
+          _selectedCategory = TaskCategory.school;
+        });
+      },
+    ),
+  ],
+),
 
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<TaskPriority>(
-                      value: _selectedPriority,
-                      decoration: const InputDecoration(
-                        labelText: "Priority",
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: TaskPriority.low,
-                          child: Text("Low"),
-                        ),
-                        DropdownMenuItem(
-                          value: TaskPriority.medium,
-                          child: Text("Medium"),
-                        ),
-                        DropdownMenuItem(
-                          value: TaskPriority.high,
-                          child: Text("High"),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
+                    
+const SizedBox(height: 20),
 
-                        setDialogState(() {
-                          _selectedPriority = value;
-                        });
-                      },
-                    ),
+const Align(
+  alignment: Alignment.centerLeft,
+  child: Text(
+    "Priority",
+    style: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
+const SizedBox(height: 12),
+
+Row(
+  children: [
+    PriorityChip(
+      priority: TaskPriority.low,
+      selected: _selectedPriority == TaskPriority.low,
+      onTap: () {
+        setDialogState(() {
+          _selectedPriority = TaskPriority.low;
+        });
+      },
+    ),
+
+    const SizedBox(width: 12),
+
+    PriorityChip(
+      priority: TaskPriority.medium,
+      selected: _selectedPriority == TaskPriority.medium,
+      onTap: () {
+        setDialogState(() {
+          _selectedPriority = TaskPriority.medium;
+        });
+      },
+    ),
+
+    const SizedBox(width: 12),
+
+    PriorityChip(
+      priority: TaskPriority.high,
+      selected: _selectedPriority == TaskPriority.high,
+      onTap: () {
+        setDialogState(() {
+          _selectedPriority = TaskPriority.high;
+        });
+      },
+    ),
+  ],
+),
 
                     const SizedBox(height: 16),
 
@@ -269,45 +389,18 @@ void initState() {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _search,
-              decoration: InputDecoration(
-                hintText: "Search tasks...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-    ),
-  ),
-  onChanged: (_) {
+           TaskHeader(
+  searchController: _search,
+  onSearchChanged: (_) {
     setState(() {});
   },
+  totalTasks: totalTasks,
+  completedTasks: completedTasks,
+  openTasks: openTasks,
+  completionRate: completionRate,
 ),
 
-const SizedBox(height: 16),
-
-SegmentedButton<String>(
-  segments: const [
-    ButtonSegment(
-      value: 'All',
-      label: Text('All'),
-    ),
-    ButtonSegment(
-      value: 'Open',
-      label: Text('Open'),
-    ),
-    ButtonSegment(
-      value: 'Completed',
-      label: Text('Done'),
-    ),
-  ],
-  selected: {_filter},
-  onSelectionChanged: (selection) {
-    setState(() {
-      _filter = selection.first;
-    });
-  },
-),
-
+const SizedBox(height: 20),
 const SizedBox(height: 20),
 
 Row(
@@ -390,40 +483,73 @@ const SizedBox(height: 20),
               
   
 Expanded(
-  child: tasks.isEmpty
-      ? const Center(child: Text('No tasks'))
-      : ListView.builder(
-          itemCount: tasks.length,
-          itemBuilder: (context, index) {
-            final task = tasks[index];
-            return TaskCard(
-              task: task,
-              onTap: () {
-                setState(() {
-                  task.completed = !task.completed;
-                });
-                _saveTasks();
-              },
-              onEdit: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Editing ${task.title} coming soon"),
-                  ),
-                );
-              },
-              onDelete: () {
-                setState(() {
-                  _tasks.remove(task);
-                });
-                _saveTasks();
-              },
-            );
-          },
+  child: TaskList(
+    tasks: tasks,
+    filter: _filter == "All"
+        ? TaskFilter.all
+        : _filter == "Open"
+            ? TaskFilter.open
+            : TaskFilter.completed,
+    category: null,
+    onAddTask: () => _showTaskDialog(),
+    onToggle: (task) async {
+      setState(() {
+       task.completed = !task.completed;
+     });
+
+    if (task.completed) {
+      final nextTask =
+        RecurringTaskService.generateNext(task);
+
+    if (nextTask != null) {
+      final exists = _tasks.any(
+        (t) =>
+            t.title == nextTask.title &&
+            t.dueDate == nextTask.dueDate,
+      );
+
+      if (!exists) {
+        setState(() {
+          _tasks.add(nextTask);
+        });
+      }
+    }
+  }
+
+  await _saveTasks();
+},
+   onEdit: (task) async {
+    await showDialog(
+      context: context,
+      builder: (_) => TaskDialog(
+        task: task,
+        onSave: (updatedTask) async {
+          final index = _tasks.indexWhere(
+            (t) => t.id == updatedTask.id,
+          );
+
+          if (index == -1) return;
+
+          setState(() {
+            _tasks[index] = updatedTask;
+          });
+
+          await _saveTasks();
+        },
+      ),
+    );
+  },
+    onDelete: (task) {
+      setState(() {
+        _tasks.remove(task);
+      });
+      _saveTasks();
+    },
+  ), // <-- closes TaskList
+),   // <-- closes Expanded
+          ],
         ),
       ),
-    ],
-  ),
-),
-);
-}
+    );
+  }
 }

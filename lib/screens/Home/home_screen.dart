@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../models/dashboard_summary.dart';
+import '../../services/dashboard_summary_service.dart';
+
+import '../../widgets/dashboard_header.dart';
+import '../../widgets/dashboard_summary_card.dart';
+import '../../widgets/focus_card.dart';
+import '../../widgets/stats_section.dart';
+import '../../widgets/quick_action_card.dart';
+import '../../widgets/inspiration_card.dart';
+import '../../widgets/section_title.dart';
+
 import '../tasks/task_screen.dart';
 import '../planner/planner_screen.dart';
 import '../budget/budget_screen.dart';
 import '../profile/profile_screen.dart';
-
-import '../../widgets/dashboard_card.dart';
-import '../../services/dashboard_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,10 +24,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _openTasks = 0;
-  int _completedTasks = 0;
-  int _totalTasks = 0;
-  double _completionRate = 0;
+  DashboardSummary? _summary;
 
   @override
   void initState() {
@@ -28,159 +33,188 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDashboard() async {
-    final open = await DashboardService.getOpenTaskCount();
-    final completed = await DashboardService.getCompletedTaskCount();
-    final total = await DashboardService.getTotalTaskCount();
-    final rate = await DashboardService.getTaskCompletionRate();
+    final summary =
+        await DashboardSummaryService.loadSummary();
 
     if (!mounted) return;
 
     setState(() {
-      _openTasks = open;
-      _completedTasks = completed;
-      _totalTasks = total;
-      _completionRate = rate;
+      _summary = summary;
     });
   }
 
-  Widget _moduleCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Widget page,
-  }) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(icon),
-        ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => page,
-            ),
-          ).then((_) => _loadDashboard());
-        },
-      ),
-    );
+  String get _greeting {
+    final hour = DateTime.now().hour;
+
+    if (hour < 12) {
+      return "☀️ Good Morning";
+    } else if (hour < 17) {
+      return "🌤 Good Afternoon";
+    } else {
+      return "🌙 Good Evening";
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final summary = _summary;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LifeFlow'),
+        title: const Text("LifeFlow"),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const Text(
-            'Dashboard',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          const Text(
-            'Your Life at a Glance',
-            style: TextStyle(
-              color: Colors.grey,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          DashboardCard(
-            title: "Today's Tasks",
-            icon: Icons.check_circle,
-            accentColor: Colors.green,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const TaskScreen(),
-                ),
-              ).then((_) => _loadDashboard());
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: summary == null
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
               children: [
-                Text(
-                  "$_totalTasks Total Tasks",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+
+                DashboardHeader(
+                  greeting: _greeting,
                 ),
 
-                const SizedBox(height: 8),
-
-                Text(
-                  "$_openTasks Open",
-                  style: const TextStyle(fontSize: 16),
+                DashboardSummaryCard(
+                  summary: summary,
                 ),
 
-                Text(
-                  "$_completedTasks Completed",
-                  style: const TextStyle(fontSize: 16),
+                const SizedBox(height: 24),
+
+                FocusCard(
+                  openTasks: summary.openTasks,
+                  completedTasks: summary.completedTasks,
+                ),
+
+                const SizedBox(height: 24),
+
+                const SectionTitle(
+                  title: "Today's Progress",
+                ),
+
+                StatsSection(
+                  totalTasks: summary.totalTasks,
+                  openTasks: summary.openTasks,
+                  completedTasks: summary.completedTasks,
+                  completionRate: summary.completionRate,
+                ),
+
+                const SizedBox(height: 30),
+
+                const SectionTitle(
+                  title: "Quick Actions",
+                ),
+
+                const SizedBox(height: 12),
+                                Row(
+                  children: [
+                    Expanded(
+                      child: QuickActionCard(
+                        title: "Tasks",
+                        icon: Icons.check_circle,
+                        color: Colors.green,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TaskScreen(),
+                            ),
+                          ).then((_) => _loadDashboard());
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: QuickActionCard(
+                        title: "Planner",
+                        icon: Icons.calendar_month,
+                        color: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PlannerScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 12),
 
-                LinearProgressIndicator(
-                  value: _completionRate,
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: QuickActionCard(
+                        title: "Budget",
+                        icon: Icons.account_balance_wallet,
+                        color: Colors.orange,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const BudgetScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: QuickActionCard(
+                        title: "Profile",
+                        icon: Icons.person,
+                        color: Colors.purple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 30),
 
-                Text(
-                  "${(_completionRate * 100).toStringAsFixed(0)}% Complete",
-                  style: const TextStyle(
-                    color: Colors.grey,
-                  ),
+                const SectionTitle(
+                  title: "Coming Soon",
                 ),
+
+                const SizedBox(height: 12),
+
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: const [
+                    Chip(label: Text("Goals")),
+                    Chip(label: Text("Habits")),
+                    Chip(label: Text("Meals")),
+                    Chip(label: Text("Home")),
+                    Chip(label: Text("Family")),
+                    Chip(label: Text("Travel")),
+                    Chip(label: Text("Health")),
+                    Chip(label: Text("AI Assistant")),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                const InspirationCard(),
+
+                const SizedBox(height: 40),
               ],
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          _moduleCard(
-            context,
-            title: 'Planner',
-            subtitle: 'Calendar & events',
-            icon: Icons.calendar_month,
-            page: const PlannerScreen(),
-          ),
-
-          _moduleCard(
-            context,
-            title: 'Budget',
-            subtitle: 'Track income & expenses',
-            icon: Icons.account_balance_wallet,
-            page: const BudgetScreen(),
-          ),
-
-          _moduleCard(
-            context,
-            title: 'Profile',
-            subtitle: 'Settings & preferences',
-            icon: Icons.person,
-            page: const ProfileScreen(),
-          ),
-        ],
-      ),
     );
   }
 }

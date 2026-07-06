@@ -15,7 +15,7 @@ class LifeFlowApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'LifeFlow',
-      theme: AppTheme.light,
+      theme: AppTheme.lightTheme,
       home: const NavigationScreen(),
     );
   }
