@@ -1,40 +1,57 @@
 import '../models/task.dart';
+import '../models/planner_event.dart';
+import '../models/transaction.dart';
+
 import 'storage_service.dart';
+import 'planner_service.dart';
+import 'budget_service.dart';
 
 class DashboardService {
-  DashboardService._();
-
-  static Future<List<Task>> getTasks() async {
-    return await StorageService.loadTasks();
-  }
-
-  static Future<int> getOpenTaskCount() async {
+  static Future<List<Task>> todaysTasks() async {
     final tasks = await StorageService.loadTasks();
 
-    return tasks.where((task) => !task.completed).length;
-  }
-  static Future<int> getCompletedTaskCount() async {
-    final tasks = await StorageService.loadTasks();
+    final now = DateTime.now();
 
-    return tasks.where((task) => task.completed).length;
-  }
+    return tasks.where((task) {
+      if (task.completed) return false;
+      if (task.dueDate == null) return false;
 
-  static Future<int> getTotalTaskCount() async {
-    final tasks = await StorageService.loadTasks();
-
-    return tasks.length;
+      return task.dueDate!.year == now.year &&
+          task.dueDate!.month == now.month &&
+          task.dueDate!.day == now.day;
+    }).toList();
   }
 
-  static Future<double> getTaskCompletionRate() async {
-    final tasks = await StorageService.loadTasks();
+  static Future<List<PlannerEvent>> todaysEvents() async {
+    final events = await PlannerService.loadEvents();
 
-    if (tasks.isEmpty) {
-      return 0;
-    }
+    final now = DateTime.now();
 
-    final completed =
-      tasks.where((task) => task.completed).length;
+    return events.where((event) {
+      return event.start.year == now.year &&
+          event.start.month == now.month &&
+          event.start.day == now.day;
+    }).toList();
+  }
 
-    return completed / tasks.length;
+  static Future<double> currentBalance() async {
+    final transactions =
+        await BudgetService.loadTransactions();
+
+    return BudgetService.balance(transactions);
+  }
+
+  static Future<double> totalIncome() async {
+    final transactions =
+        await BudgetService.loadTransactions();
+
+    return BudgetService.totalIncome(transactions);
+  }
+
+  static Future<double> totalExpenses() async {
+    final transactions =
+        await BudgetService.loadTransactions();
+
+    return BudgetService.totalExpenses(transactions);
   }
 }
