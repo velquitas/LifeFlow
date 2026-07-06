@@ -17,8 +17,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
   int currentIndex = 0;
 
   final List<Widget> screens = const [
-    HomeScreen(),
     TaskScreen(),
+    HomeScreen(),
     PlannerScreen(),
     BudgetScreen(),
     ProfileScreen(),
