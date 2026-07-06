@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../../models/dashboard_data.dart';
 import '../../services/dashboard_service.dart';
+import '../../services/notification_center_service.dart';
 
+import '../../widgets/budget_snapshot_card.dart';
 import '../../widgets/dashboard_header.dart';
 import '../../widgets/dashboard_summary_card.dart';
 import '../../widgets/focus_card.dart';
-import '../../widgets/stats_section.dart';
-import '../../widgets/todays_tasks_card.dart';
-import '../../widgets/todays_events_card.dart';
-import '../../widgets/budget_snapshot_card.dart';
-import '../../widgets/quick_action_card.dart';
 import '../../widgets/inspiration_card.dart';
+import '../../widgets/notification_badge.dart';
+import '../../widgets/quick_action_card.dart';
 import '../../widgets/section_title.dart';
+import '../../widgets/stats_section.dart';
+import '../../widgets/todays_events_card.dart';
+import '../../widgets/todays_tasks_card.dart';
 
-import '../tasks/task_screen.dart';
-import '../planner/planner_screen.dart';
 import '../budget/budget_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../planner/planner_screen.dart';
 import '../profile/profile_screen.dart';
+import '../tasks/task_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,16 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _dashboard = dashboard;
       });
-    } catch (_) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Unable to load dashboard.",
-          ),
-        ),
-      );
+    } catch (e) {
+      debugPrint("Dashboard error: $e");
     }
   }
 
@@ -83,10 +78,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final dashboard = _dashboard!;
-        return Scaffold(
+
+    return Scaffold(
       appBar: AppBar(
         title: const Text("LifeFlow"),
         centerTitle: true,
+        actions: [
+          NotificationBadge(
+            count: NotificationCenterService.unreadCount(),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const NotificationsScreen(),
+                ),
+              );
+
+              if (mounted) {
+                setState(() {});
+              }
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadDashboard,
@@ -97,7 +111,8 @@ class _HomeScreenState extends State<HomeScreen> {
               greeting: _greeting,
             ),
 
-            DashboardSummaryCard(
+            const SizedBox(height: 20),
+                        DashboardSummaryCard(
               totalTasks: dashboard.totalTasks,
               completedTasks: dashboard.completedTasks,
               openTasks: dashboard.openTasks,
@@ -115,6 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SectionTitle(
               title: "Today's Progress",
             ),
+
+            const SizedBox(height: 12),
 
             StatsSection(
               totalTasks: dashboard.totalTasks,
@@ -162,13 +179,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: "Tasks",
                     icon: Icons.check_circle,
                     color: Colors.green,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const TaskScreen(),
                         ),
-                      ).then((_) => _loadDashboard());
+                      );
+
+                      if (mounted) {
+                        _loadDashboard();
+                      }
                     },
                   ),
                 ),
